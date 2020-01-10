@@ -178,7 +178,7 @@ class OsmContributorStats:
                 if (nb==1): pprint(tag)
                 comment=""
                 created_by=""
-                csv_dim_txt=changesets_list[obs]["user"].encode('utf-8')+"\t "+str(obs)+"\t "+str(exclu)
+                csv_dim_txt=str(changesets_list[obs]["user"].encode('utf-8'))+"\t "+str(obs)+"\t "+str(exclu)
                 csv_dim_txt+="\t "+str(lat1)+"\t "+str(lon1)+"\t "+str(lat2)+"\t "+str(lon2)+"\t "+str(surface_bbox)
                 csv_dim_txt+="\t "+str(dims_changeset["surface"])+"\t "+ str(ratio)
                 csv_dim_txt+="\t "+comment +"\t "+created_by +"\n"
@@ -438,7 +438,7 @@ class OsmContributorStats:
             s_changesets = osmApi.ChangesetsGet(min_lon, min_lat, max_lon, max_lat,
             username=username, closed_after=date_from,
             created_before=date_to)
-            print(f"s_changesets: ",s_changesets)
+            # print(f"s_changesets: ",s_changesets)
         if(self._debug): print("\n", dt, " >> iter=0  nb s_changesets=",len(s_changesets))
         if len(s_changesets)<100:
             changesets=s_changesets
@@ -594,6 +594,7 @@ class OsmContributorStats:
 
     def daily_hist(self, username,min_lon, min_lat, max_lon,max_lat,single_date,
         t_from_date,t_to_date,fi_changesets_list,fi_changesets_objects,ekip,stats,stats_team) :
+        print("daily_hist")
         if (self._debug) : print("daily statistics, single_date="+str(single_date)[0:10])
         date_from=str(t_from_date)[0:10]+"T00:00:00Z"
         date_to=str(t_from_date)[0:10]+"T23:59:59Z"
@@ -603,16 +604,21 @@ class OsmContributorStats:
         if (self._debug) : print("username=(",username,")")
         changesets = self.getChangesets(username,min_lon, min_lat, max_lon,
             max_lat, date_from, date_to)
-        print("CHANGESETS",changesets)
+        # print("CHANGESETS",changesets)
         nb_daily_changesets=len(changesets)
         if (self._debug) : print("Daily TOTAL nb_changesets=", nb_daily_changesets)
         print(str(date_from), str(date_to),len(changesets))
         if (nb_daily_changesets>0):
+            print('nb_daily_changesets',nb_daily_changesets)
+            print(fi_changesets_list,str(changesets))
             fi_changesets_list.write(str(changesets)+" \n")
             fi_changesets_list.flush()
             for id in changesets:
+                print(id)
                 csstat= self.getChangesetHist(id,ekip,fi_changesets_objects)
+                # print('CSSTAT',csstat)
                 stats["changeset"] += 1
+        print("POTAAAAQA")
         return changesets, stats, stats_team, nb_daily_changesets
 
     def daily_statistics(self, username,min_lon, min_lat, max_lon,max_lat,single_date,
@@ -695,6 +701,7 @@ class OsmContributorStats:
 
     def ekip_hist(self, user,min_lon, min_lat, max_lon,
         max_lat,from_date,to_date,fi_changesets_list,fi_changesets_objects,ekip,stats_team) :
+        print("EKIP HIST")
         stats= {"changeset":0}
         nb_changesets=0
         nb_daily_changesets=0
@@ -709,6 +716,7 @@ class OsmContributorStats:
         if (self._debug) : print("t_to_date " + str(t_to_date))
         time_from="T00:00:00Z"
         for single_date in self.daterange(t_from_date, t_to_date):
+            print("SINGLEDATE",single_date)
             if (self._debug): print("loop single_date = "+ str(single_date))
             self.daily_hist(username,min_lon, min_lat, max_lon,
                 max_lat,single_date,single_date,single_date,fi_changesets_list,fi_changesets_objects,ekip,stats,stats_team)
@@ -790,8 +798,8 @@ class OsmContributorStats:
         nom_changeset_objects=prefix+from_date+"-"+to_date+"_changeset_hist_objects.txt"
         #
         print("="*100)
-        fi_changesets_list = open(nom_changeset_list, 'wb')
-        fi_changesets_objects = open(nom_changeset_objects, 'wb')
+        fi_changesets_list = open(nom_changeset_list, 'w')
+        fi_changesets_objects = open(nom_changeset_objects, 'w')
 
         print("ekip, user, changeset")
         for ekip in range(team_from,team_to+1):
@@ -942,7 +950,6 @@ class OsmContributorStats:
         print(nb, " Changesets"," nb stats_user_list= ", len(stats_user_list))
         print("-"*100)
         imp_col=  "ekip \t osmuser_uid\t osmuser_name\t changeset\t objects \t objects_c \t objects_m \t objects_d\t node_c\t way_c\t relation_c\t node_m\t way_m\t relation_m\t node_d\t way_d\t relation_d\t poi_total_nodes\t node_amenity\t node_shop\t node_office\t node_power\t node_place\t node_man_made\t node_history\t node_tourism\t node_leisure\t way_highway\t way_waterway\t way_building\t way_landuse\t way_man_made"
-        print(imp_col)
         csv.write(imp_col+"\n")
         csv.write("\t \t"+nom_date+"\t\tBBOX : \t"+str(min_lon)+"\t"+ str(min_lat)+"\t"+str(max_lon)+"\t"+ str(max_lat)+"\n")
         csv.flush()
@@ -971,7 +978,7 @@ class OsmContributorStats:
             if isinstance(user, str):
                 user = user.encode('utf-8')
             import re
-            user= re.sub(r'[\xdf-\xfc]', ' ', user)
+            user= re.sub(r'[\xdf-\xfc]', ' ', str(user))
             if "closed_at" in changesets_list[changeset_id] :
                 closed_at=changesets_list[changeset_id]["closed_at"]
             else : closed_at="99"
@@ -995,7 +1002,7 @@ class OsmContributorStats:
                 if isinstance(created_by, str):
                     created_by = created_by.encode('utf-8')
                 #created_by= re.sub(r'[\x00-\x1f\x80-\xff]', ' ', created_by)
-                tcreated_by=created_by.lower()
+                tcreated_by=str(created_by.lower(),'utf-8')
                 if  (tcreated_by.count("josm",0,4)>0) :
                     editor="1.JOSM"
                 elif (tcreated_by.count("potlatch",0,8)>0) :
@@ -1015,8 +1022,8 @@ class OsmContributorStats:
                 print(changesets_l)
             users="1"
             imp= flag_outside_zone + " \t" + day_closed_at +' \t"' + hour_closed_at +  '"  \t' + str(ekip) +"\t" +str(uid) +"\t" + user +"\t" +str(users) + "\t" + str(changeset_id) + "\t"
-            imp+= editor  + "\t" + created_by + "   \t"
-            imp += comment + "   \t"
+            imp+= editor  + "\t" + str(created_by) + "   \t"
+            imp += str(comment) + "   \t"
             imp += str(stats_c["objects"]) + " \t" +str(stats_c["objects_c"]) + " \t" +str(stats_c["objects_m"]) + " \t" +str(stats_c["objects_d"]) + " \t" + str(stats_c["node_c"]) + " \t" + str(stats_c["way_c"]) + " \t" + str(stats_c["relation_c"])+ " \t" + str(stats_c["node_m"]) + " \t" + str(stats_c["way_m"]) + " \t" + str(stats_c["relation_m"])+ " \t" + str(stats_c["node_d"]) + " \t" + str(stats_c["way_d"]) + " \t" + str(stats_c["relation_d"]) + " \t"
             imp += str(stats_c["poi_total_nodes"])
             imp += " \t" + str(stats_c["node_amenity"])
