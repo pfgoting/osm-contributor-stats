@@ -28,8 +28,16 @@ import OsmContributorStats
 # Instantiate
 osmApi = OsmApi.OsmApi(debug=0)
 fpath = Path(os.path.dirname(os.path.abspath(__file__)))
-rep = fpath / 'test2'
+rep = fpath / 'test3'
 print(rep)
+
+# Create dir
+print("TEST")
+try:
+    os.makedirs(rep)
+except Exception as e:
+    print(e)
+    pass
 
 ContributorStats = OsmContributorStats.OsmContributorStats(
     rep=rep, lang="en", debug=0)

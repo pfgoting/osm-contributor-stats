@@ -30,7 +30,7 @@ dir(ContributorStats)
 #===============================================================================
 # users :  array of contributor ID's or Name by team - if no users, all users in the bbox will be selected
 users = [None] * 2
-users[0] = ["feyeandal"]
+users[0] = ["feyeandal","roger83"]
 users[1] = [""]
 
 """
@@ -58,11 +58,11 @@ ContributorStats.API6_Collect_Changesets(team_from=0, team_to=0, from_date=frm_d
                                          prefix="osmef-togo-", users=users)
 
 # print("step 2")
-# # Step 2 - Statistics from data stored locally	- Statistiques produite à partir des données enregistrées localement
-# ContributorStats.Changesets_Contributor_Statistics(team_from=0, team_to=0, from_date=frm_dte,
-#                                                    to_date=to_dte,
-#                                                    min_lon=min_lon, max_lon=max_lon, min_lat=min_lat, max_lat=max_lat,
-#                                                    prefix="osmef-togo-", users=users)
+# Step 2 - Statistics from data stored locally	- Statistiques produite à partir des données enregistrées localement
+ContributorStats.Changesets_Contributor_Statistics(team_from=0, team_to=0, from_date=frm_dte,
+                                                   to_date=to_dte,
+                                                   min_lon=min_lon, max_lon=max_lon, min_lat=min_lat, max_lat=max_lat,
+                                                   prefix="osmef-togo-", users=users)
 
 
 print("\n-----------------------------------------------------")
