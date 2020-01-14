@@ -473,7 +473,6 @@ class OsmApi:
         data = self._get(uri)
         data = xml.dom.minidom.parseString(data)
         data = data.getElementsByTagName("osm")[0].getElementsByTagName("changeset")
-        print("DATA",data)
         result = {}
         for curChangeset in data:
             tmpCS = self._DomParseChangeset(curChangeset)

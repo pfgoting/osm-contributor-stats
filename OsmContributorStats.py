@@ -13,6 +13,7 @@
 #__version__ = '0.3.1'
 
 import ast, csv, os, sys, json, math
+import pandas as pd
 from pprint import pprint
 from datetime import datetime
 from datetime import timedelta
@@ -430,7 +431,7 @@ class OsmContributorStats:
         # x = osmApi.ChangesetsGet(username="feyeandal")
         # print("X",x)
         if(self._debug) : print("\n", dt, " >> ChangesetsGet(username=(",username, "), date_from=", date_from, ", date_to=", date_to)
-        if (username.lstrip()==" "):
+        if (username.lstrip()==""):
             s_changesets = osmApi.ChangesetsGet(min_lon, min_lat, max_lon, max_lat,
             closed_after=date_from,
             created_before=date_to)
@@ -438,7 +439,7 @@ class OsmContributorStats:
             s_changesets = osmApi.ChangesetsGet(min_lon, min_lat, max_lon, max_lat,
             username=username, closed_after=date_from,
             created_before=date_to)
-            # print(f"s_changesets: ",s_changesets)
+        print(f"s_changesets: ",len(s_changesets))
         if(self._debug): print("\n", dt, " >> iter=0  nb s_changesets=",len(s_changesets))
         if len(s_changesets)<100:
             changesets=s_changesets
@@ -507,7 +508,21 @@ class OsmContributorStats:
                     fini=1
                     if(self._debug): print(">> TOTAL nb changesets=",len(changesets))
                     break
-        return changesets
+        
+        print("Try filter")
+        new = {}
+        comment = "#UPRIYouthMappers"
+        for item in changesets:
+            try:
+                changeset_comment = changesets[item]['tag']['comment']
+            except Exception as e:
+                print(e)
+                continue
+            else:
+                if comment in changeset_comment:
+                    new[item] = changesets[item]
+
+        return new
 
     def getChangesetHist(self, cid,ekip,fi_changesets_objects):
         from __main__ import osmApi
@@ -592,7 +607,7 @@ class OsmContributorStats:
             yield start_date + timedelta(n)
         return
 
-    def daily_hist(self, username,min_lon, min_lat, max_lon,max_lat,single_date,
+    def daily_hist(self, username, comment_filter, min_lon, min_lat, max_lon,max_lat,single_date,
         t_from_date,t_to_date,fi_changesets_list,fi_changesets_objects,ekip,stats,stats_team) :
         print("daily_hist")
         if (self._debug) : print("daily statistics, single_date="+str(single_date)[0:10])
@@ -604,21 +619,21 @@ class OsmContributorStats:
         if (self._debug) : print("username=(",username,")")
         changesets = self.getChangesets(username,min_lon, min_lat, max_lon,
             max_lat, date_from, date_to)
-        # print("CHANGESETS",changesets)
         nb_daily_changesets=len(changesets)
         if (self._debug) : print("Daily TOTAL nb_changesets=", nb_daily_changesets)
         print(str(date_from), str(date_to),len(changesets))
+        
         if (nb_daily_changesets>0):
             print('nb_daily_changesets',nb_daily_changesets)
-            print(fi_changesets_list,str(changesets))
+            # print(fi_changesets_list,str(changesets))
             fi_changesets_list.write(str(changesets)+" \n")
             fi_changesets_list.flush()
+            with open("data.json","w") as w:
+                json.dump(changesets,w)
             for id in changesets:
                 print(id)
                 csstat= self.getChangesetHist(id,ekip,fi_changesets_objects)
-                # print('CSSTAT',csstat)
                 stats["changeset"] += 1
-        print("POTAAAAQA")
         return changesets, stats, stats_team, nb_daily_changesets
 
     def daily_statistics(self, username,min_lon, min_lat, max_lon,max_lat,single_date,
@@ -699,7 +714,7 @@ class OsmContributorStats:
         if (self._debug) : print(str(ekip) +" *debug*, " +str(username) +", " + str(stats["changeset"]) + ", " + str(stats["node_c"]) + ", " + str(stats["way_c"]) + ", " + str(stats["relation_c"])+ ", " + str(stats["node_m"]) + ", " + str(stats["way_m"]) + ", " + str(stats["relation_m"])+ ", " + str(stats["node_d"]) + ", " + str(stats["way_d"]) + ", " + str(stats["relation_d"]) + ", " + str(stats["node_amenity"]) + ", " + str(stats["node_shop"]) + ", " + str(stats["node_craft"]) + ", " + str(stats["node_office"]) + ", " + str(stats["node_power"]) + ", " + str(stats["node_place"])  + ", " + str(stats["node_man_made"]) + ", " + str(stats["node_history"]) + ", " + str(stats["node_tourism"]) + ", " + str(stats["node_leisure"]))
         return changesets, stats, stats_team, nb_daily_changesets
 
-    def ekip_hist(self, user,min_lon, min_lat, max_lon,
+    def ekip_hist(self, user, comment_filter, min_lon, min_lat, max_lon,
         max_lat,from_date,to_date,fi_changesets_list,fi_changesets_objects,ekip,stats_team) :
         print("EKIP HIST")
         stats= {"changeset":0}
@@ -718,7 +733,7 @@ class OsmContributorStats:
         for single_date in self.daterange(t_from_date, t_to_date):
             print("SINGLEDATE",single_date)
             if (self._debug): print("loop single_date = "+ str(single_date))
-            self.daily_hist(username,min_lon, min_lat, max_lon,
+            self.daily_hist(username, comment_filter, min_lon, min_lat, max_lon,
                 max_lat,single_date,single_date,single_date,fi_changesets_list,fi_changesets_objects,ekip,stats,stats_team)
             nb_changesets+=nb_daily_changesets
         stats_team["changeset"] += stats["changeset"]
@@ -777,7 +792,7 @@ class OsmContributorStats:
         csv.flush()
         return  stats, stats_team, nb_changesets
 
-    def API6_Collect_Changesets(self,team_from,team_to,from_date,to_date,min_lon,max_lon,min_lat,max_lat,prefix, users=None) :
+    def API6_Collect_Changesets(self,team_from,team_to,from_date,to_date,min_lon,max_lon,min_lat,max_lat,prefix, users=None, comment_filter=None) :
         global ekip
         self.verif_users(users)
         print("\n","="*100)
@@ -806,12 +821,12 @@ class OsmContributorStats:
             stats_team= {"changeset":0}
             print("\n ekip " + str(ekip))
             for user in users[ekip]:
-                try:
-                    self.ekip_hist(user,min_lon, min_lat, max_lon,
-                        max_lat,from_date,to_date,fi_changesets_list,fi_changesets_objects,ekip,stats_team)
+                # try:
+                self.ekip_hist(user,comment_filter,min_lon, min_lat, max_lon,
+                    max_lat,from_date,to_date,fi_changesets_list,fi_changesets_objects,ekip,stats_team)
                     # end of team - print in summary file by team
-                except:
-                    continue
+                # except:
+                #     continue
 
             print(str(ekip) +", " +str(from_date[1:10])+" - " + str(to_date[1:10])+", " + str(stats_team["changeset"]))
         fi_changesets_list.close()
@@ -894,7 +909,7 @@ class OsmContributorStats:
             changeset=ast.literal_eval(read_data)
             changeset_id=changeset["data"]["changeset"]
             uid=changeset["data"]["uid"]
-            user=str(changeset["data"]["user"].encode('utf-8'))
+            user=changeset["data"]["user"]
             if "ekip" in changeset: ekip=str(changeset["ekip"])
             else :
                 if "team" in changeset: ekip=str(changeset["team"])
@@ -1033,11 +1048,23 @@ class OsmContributorStats:
             csv_changeset.flush()
 
         # stats by user
+        print("STAAAAATS",stats_user)
+        stats = []
+        for user_id in stats_user:
+            dic = dict(stats_user[user_id]['stat'])
+            # dic = stats_user[user_id]['stat']
+            dic["user_id"] = user_id
+            print(len(stats_user[user_id]['user']))
+            dic["user_name"] = str(stats_user[user_id]['user'])
+            stats.append(dic)
+        
+        df = pd.DataFrame(stats)
+        df.to_csv("output.csv",index=False)
+
         for uid in stats_user:
             #nb+=1
             if (self._debug):  print("\n\nDebug uid=", uid)
             imp= stats_user[uid]["ekip"].rjust(3," ") +"\t " + str(uid).rjust(10," ") +"\t " + stats_user[uid]["user"].ljust(20," ") +"\t " + str(stats_user[uid]["stat"]["changeset"]).rjust(5," ") +"\t " + str(stats_user[uid]["stat"]["objects"]).rjust(12," ") + "\t " + str(stats_user[uid]["stat"]["objects_c"]).rjust(12," ") + "\t " + str(stats_user[uid]["stat"]["objects_m"]).rjust(12," ") + "\t " + str(stats_user[uid]["stat"]["objects_d"]).rjust(12," ") + "\t " + str(stats_user[uid]["stat"]["node_c"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["way_c"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["relation_c"]).rjust(5," ")+ "\t " + str(stats_user[uid]["stat"]["node_m"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["way_m"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["relation_m"]).rjust(5," ")+ "\t " + str(stats_user[uid]["stat"]["node_d"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["way_d"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["relation_d"]).rjust(5," ") + "\t " + str(stats_user[uid]["stat"]["poi_total_nodes"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_amenity"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_shop"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_office"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_power"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_place"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_man_made"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_history"]).rjust(4," ") + "\t " + str(stats_user[uid]["stat"]["node_tourism"]).rjust(4," ")+ "\t " + str(stats_user[uid]["stat"]["node_leisure"]).rjust(4," ")+ "\t " + str(stats_user[uid]["stat"]["way_highway"]).rjust(4," ")+ "\t " + str(stats_user[uid]["stat"]["way_waterway"]).rjust(4," ")+ "\t " + str(stats_user[uid]["stat"]["way_building"]).rjust(4," ")+ "\t " + str(stats_user[uid]["stat"]["way_landuse"]).rjust(4," ")+ "\t " + str(stats_user[uid]["stat"]["way_man_made"]).rjust(4," ")
-            print(imp)
             csv.write(imp+"\n")
             csv.flush()
             ekip=str(stats_user[uid]["ekip"])
