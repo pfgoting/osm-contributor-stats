@@ -136,7 +136,7 @@ class OsmContributorStats:
         if self._debug: print("debug: nom_changeset_list=" + str(nom_changeset_list))
         if self._debug: print(os.listdir(self.rep))
         try:
-            fi_changesets_list = open(nom_changeset_list, 'r')
+            fi_changesets_list = open(nom_changeset_list, 'r',encoding='utf-8')
         except:
             sys.exit ("\n ERROR OsmContributorStats, Changesets_Contributor_Statistics function.\n Directory " + self.rep+", Filename "+ nom_changeset_list + " not found.\n Note that parameters from_date, to_date and prefix should be the same as in API6_Collect_Changesets function.\n" )
         if ((min_lon-max_lon)<0.0001) and ((max_lat-min_lat)<0.0001):
@@ -416,7 +416,7 @@ class OsmContributorStats:
                 fini=1
         return changesets
 
-    def getChangesets(self, username,min_lon, min_lat, max_lon, max_lat,
+    def getChangesets(self, username,comment_filter, min_lon, min_lat, max_lon, max_lat,
         date_from, date_to):
         from __main__ import osmApi
         # Time Segments command stack to extract changesets. Push segments and pop-up one by one. When 100 extracts returned, the specific Time segment is split in two segments and they are pushed to the stack.
@@ -509,9 +509,9 @@ class OsmContributorStats:
                     if(self._debug): print(">> TOTAL nb changesets=",len(changesets))
                     break
         
-        print("Try filter")
+        print(f"Filtering changesets using comment filter/s: {comment_filter}")
         new = {}
-        comment = "#UPRIYouthMappers"
+        comment = comment_filter
         for item in changesets:
             try:
                 changeset_comment = changesets[item]['tag']['comment']
@@ -617,21 +617,21 @@ class OsmContributorStats:
         if (self._debug) : print(str(date_to))
         if (username==" "):username=""
         if (self._debug) : print("username=(",username,")")
-        changesets = self.getChangesets(username,min_lon, min_lat, max_lon,
+        changesets = self.getChangesets(username,comment_filter,min_lon, min_lat, max_lon,
             max_lat, date_from, date_to)
         nb_daily_changesets=len(changesets)
         if (self._debug) : print("Daily TOTAL nb_changesets=", nb_daily_changesets)
         print(str(date_from), str(date_to),len(changesets))
         
         if (nb_daily_changesets>0):
-            print('nb_daily_changesets',nb_daily_changesets)
+            # print('nb_daily_changesets',nb_daily_changesets)
             # print(fi_changesets_list,str(changesets))
             fi_changesets_list.write(str(changesets)+" \n")
             fi_changesets_list.flush()
             with open("data.json","w") as w:
                 json.dump(changesets,w)
             for id in changesets:
-                print(id)
+                # print(id)
                 csstat= self.getChangesetHist(id,ekip,fi_changesets_objects)
                 stats["changeset"] += 1
         return changesets, stats, stats_team, nb_daily_changesets
@@ -813,8 +813,8 @@ class OsmContributorStats:
         nom_changeset_objects=prefix+from_date+"-"+to_date+"_changeset_hist_objects.txt"
         #
         print("="*100)
-        fi_changesets_list = open(nom_changeset_list, 'w')
-        fi_changesets_objects = open(nom_changeset_objects, 'w')
+        fi_changesets_list = open(nom_changeset_list, 'w',encoding='utf-8')
+        fi_changesets_objects = open(nom_changeset_objects, 'w',encoding='utf-8')
 
         print("ekip, user, changeset")
         for ekip in range(team_from,team_to+1):
@@ -878,10 +878,10 @@ class OsmContributorStats:
         prefix_team=prefix+from_date+"-"+to_date+"-team.csv"
         prefix_changesets=prefix+from_date+"-"+to_date+"-changeset.csv"
         #
-        csv = open(prefix_users, 'w')
-        csv_team = open(prefix_team, 'w')
-        csv_changeset = open(prefix_changesets, 'w')
-        csv_dim = open(nom_csv_dim, 'w')
+        csv = open(prefix_users, 'w', encoding='utf-8')
+        csv_team = open(prefix_team, 'w',encoding='utf-8')
+        csv_changeset = open(prefix_changesets, 'w', encoding='utf-8')
+        csv_dim = open(nom_csv_dim, 'w', encoding='utf-8')
         csv_dim.write("user\t id\t exclu\t min_lat\t min_lon\t max_lat\t max_lon\t surface_bbox\t surface\t ratio\t comment\t editor\t created_by \n")
         csv_dim.flush()
         imp_col_changesets=  "flag \t day \t hour \t ekip \t osmuser_uid \t osmuser_name \t changeset \t changeset_id \t editor \t created_by \t comment \t objects \t objects_c \t objects_m \t objects_d \t node_c \t way_c \t relation_c \t node_m \t way_m \t relation_m \t node_d \t way_d \t relation_d \t poi_total_nodes \t node_amenity \t node_shop \t node_office \t node_power \t node_place \t node_man_made \t node_history \t node_tourism \t node_leisure \t way_highway \t way_waterway \t way_building \t way_landuse \t way_man_made \t min_lon \t min_lat \t max_lon \t max_lat"
@@ -895,7 +895,7 @@ class OsmContributorStats:
         min_lon=min_lon,max_lon=max_lon,min_lat=min_lat,max_lat=max_lat,csv_dim=csv_dim)
 
         # 2. Calculate Statistics from  Changeset_objets - Exceptions for changesets flagged for Exclusion
-        fi_changesets_objects= open(nom_changeset_objects, 'r')
+        fi_changesets_objects= open(nom_changeset_objects, 'r', encoding='utf-8')
 
         # total by person
         nb=0
@@ -934,7 +934,7 @@ class OsmContributorStats:
         tchangesets_list=[]
         changesets_list={}
         stats_user_list={}
-        fi_changesets_list= open(nom_changeset_list, 'r')
+        fi_changesets_list= open(nom_changeset_list, 'r', encoding='utf-8')
         # nb changesets from changesets_list
         for read_list in fi_changesets_list.readlines():
             tchangesets_list=ast.literal_eval(read_list)
@@ -1048,13 +1048,12 @@ class OsmContributorStats:
             csv_changeset.flush()
 
         # stats by user
-        print("STAAAAATS",stats_user)
         stats = []
         for user_id in stats_user:
             dic = dict(stats_user[user_id]['stat'])
             # dic = stats_user[user_id]['stat']
             dic["user_id"] = user_id
-            print(len(stats_user[user_id]['user']))
+            # print(len(stats_user[user_id]['user']))
             dic["user_name"] = str(stats_user[user_id]['user'])
             stats.append(dic)
         
@@ -1179,14 +1178,14 @@ class OsmContributorStats:
         prefix_users=prefix+from_date+"-"+to_date+".csv"
         #
         print("==========================================")
-        fi_changesets_list = open(nom_changeset_list, 'wb')
-        fi_changesets_objects = open(nom_changeset_objects, 'wb')
-        csv = open(prefix_users, 'wb')
+        fi_changesets_list = open(nom_changeset_list, 'w',encoding='utf-8')
+        fi_changesets_objects = open(nom_changeset_objects, 'w',encoding='utf-8')
+        csv = open(prefix_users, 'w',encoding='utf-8')
         print("ekip, user, changeset, objects, objects_c, objects_m, objects_d, node_c,way_c,relation_c, node_m,way_m,relation_m, node_d,way_d,relation_d ,node_amenity,node_shop,node_office,node_power,node_place,node_man_made,node_history,node_tourism,node_leisure,way_highway,way_waterway,way_building,way_landuse,way_man_made")
         csv.write("ekip, user, changeset, objects, objects_c, objects_m, objects_d, node_c,way_c,relation_c, node_m,way_m,relation_m, node_d,way_d,relation_d ,node_amenity,node_shop,node_office,node_power,node_place,node_man_made,node_history,node_tourism,node_leisure,way_highway,way_waterway,way_building,way_landuse,way_man_made \n")
         csv.flush()
-        csv_changeset = open(prefix_changesets, 'wb')
-        csv_team = open(prefix_team, 'wb')
+        csv_changeset = open(prefix_changesets, 'w')
+        csv_team = open(prefix_team, 'w')
         csv_team.write("ekip, user, changeset, objects, objects_c, objects_m, objects_d, node_c,way_c,relation_c, node_m,way_m,relation_m, node_d,way_d,relation_d ,node_amenity,node_shop,node_office,node_power,node_place,node_man_made,node_history,node_tourism,node_leisure,way_highway,way_waterway,way_building,way_landuse,way_man_made \n")
         csv_team.flush()
         for ekip in range(team_from,team_to+1):

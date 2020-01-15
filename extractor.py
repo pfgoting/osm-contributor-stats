@@ -48,14 +48,14 @@ users[0] = ["",]
 users[1] = [""]
 
 # Step 1 - Extract History Data  - Extraire les données historiques
-frm_dte = "2019-12-12"
-to_dte = "2019-12-13"
-min_lat=7.27
-min_lon=121.60
-max_lat=12.39
-max_lon=126.72
+frm_dte = "2019-12-10"
+to_dte = "2019-12-12"
+min_lat=12.82
+min_lon=123.77
+max_lat=13.13
+max_lon=124.30
 # Tag to search
-comment_filter = "#upriyouthmappers"
+comment_filter = "hotosm-project-6734" #"#hotph" #hotosm-project-6734
 
 ContributorStats.API6_Collect_Changesets(team_from=0, team_to=0, from_date=frm_dte,
                                          to_date=to_dte,

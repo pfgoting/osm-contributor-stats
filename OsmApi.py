@@ -445,7 +445,7 @@ class OsmApi:
                       closed_after=None, created_before=None,
                       only_open=False, only_closed=False):
         """ Returns dict(ChangsetId: ChangesetData) matching all criteria. """
-        
+
         uri = "/api/0.6/changesets"
         params = {}
         if min_lon or min_lat or max_lon or max_lat:
@@ -467,8 +467,6 @@ class OsmApi:
             
         if params:
             uri += "?" + urllib.parse.urlencode(params)
-        
-        print(params,'\n',uri)
                 
         data = self._get(uri)
         data = xml.dom.minidom.parseString(data)
