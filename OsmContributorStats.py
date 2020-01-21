@@ -509,9 +509,9 @@ class OsmContributorStats:
                     if(self._debug): print(">> TOTAL nb changesets=",len(changesets))
                     break
         
-        print(f"Filtering changesets using comment filter/s: {comment_filter}")
+        print(f"Filtering changesets using comment filter/s: {', '.join(comment_filter)}")
         new = {}
-        comment = comment_filter
+        # comment = comment_filter
         for item in changesets:
             try:
                 changeset_comment = changesets[item]['tag']['comment']
@@ -519,8 +519,11 @@ class OsmContributorStats:
                 print(e)
                 continue
             else:
-                if comment in changeset_comment:
-                    new[item] = changesets[item]
+                # Check if ALL comments in comment_filter is in the changeset_comment
+                boolean_check = [True if comment in changeset_comment else False for comment in comment_filter]
+                if not len(boolean_check) == 0: # Check if empty since all([]) == True
+                    if all(boolean_check):
+                        new[item] = changesets[item]
 
         return new
 
@@ -1058,7 +1061,7 @@ class OsmContributorStats:
             stats.append(dic)
         
         df = pd.DataFrame(stats)
-        df.to_csv("output.csv",index=False)
+        df.to_csv(f"user_stats_{from_date}-{to_date}.csv",index=False)
 
         for uid in stats_user:
             #nb+=1

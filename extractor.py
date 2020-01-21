@@ -28,7 +28,7 @@ import OsmContributorStats
 # Instantiate
 osmApi = OsmApi.OsmApi(debug=0)
 fpath = Path(os.path.dirname(os.path.abspath(__file__)))
-rep = fpath / 'test'
+rep = fpath / 'test2'
 print(rep)
 
 # Create dir
@@ -48,14 +48,20 @@ users[0] = ["",]
 users[1] = [""]
 
 # Step 1 - Extract History Data  - Extraire les données historiques
-frm_dte = "2019-12-10"
-to_dte = "2019-12-12"
-min_lat=12.82
-min_lon=123.77
-max_lat=13.13
-max_lon=124.30
+frm_dte = "2019-12-11"
+to_dte = "2019-12-13"
+# min_lat=6.64
+# min_lon=124.62
+# max_lat=7.12
+# max_lon=125.42
+min_lat=7.27
+min_lon=121.60
+max_lat=12.39
+max_lon=126.72
 # Tag to search
-comment_filter = "hotosm-project-6734" #"#hotph" #hotosm-project-6734
+comment_filter = ["#hotosm-project-6212", "#UPNOAH"]
+# comment_filter = ["hotosm-project-6734","hotph"] #"#hotph" #hotosm-project-6734
+# comment_filter =  "hotosm-project-6734"#"hotosm-project-7147"
 
 ContributorStats.API6_Collect_Changesets(team_from=0, team_to=0, from_date=frm_dte,
                                          to_date=to_dte,
