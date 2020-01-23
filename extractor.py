@@ -4,27 +4,6 @@ from pathlib import Path
 import OsmApi
 import OsmContributorStats
 
-# osmCha = {
-#     "token": "3a9efa11ddd8ffd080ba96711cd5bd0d7faba114"
-# }
-# a = {"Authorization": "Token 3a9efa11ddd8ffd080ba96711cd5bd0d7faba114"}
-# url = "https://osmcha.mapbox.com/api/v1/changesets/?date__gte=2019-12-11&date__lte=2019-12-13&comment=%23hotosm-project-6212"
-# r = requests.get(url,headers=a)
-
-# features = r.json()['features']
-# print(features)
-
-# url2 = "https://osmcha.mapbox.com/api/v1/changesets/78298803/"
-# r = requests.get(url2,headers=a)
-# f = r.json()
-
-# url3 = " https://api.openstreetmap.org/api/0.6/changeset/78298803?include_discussion=true"
-# z = requests.get(url3)
-# print(z.content)
-# pdb.set_trace()
-
-
-
 # Instantiate
 osmApi = OsmApi.OsmApi(debug=0)
 fpath = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -82,4 +61,4 @@ ContributorStats.__del__()
 del OsmContributorStats
 
 import sys
-sys.exit('\n=== Travail complété ===')
+sys.exit('\n=== Extraction complete ===')

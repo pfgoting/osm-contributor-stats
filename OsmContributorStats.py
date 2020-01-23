@@ -14,6 +14,7 @@
 
 import ast, csv, os, sys, json, math
 import pandas as pd
+import re
 from pprint import pprint
 from datetime import datetime
 from datetime import timedelta
@@ -520,7 +521,7 @@ class OsmContributorStats:
                 continue
             else:
                 # Check if ALL comments in comment_filter is in the changeset_comment
-                boolean_check = [True if comment in changeset_comment else False for comment in comment_filter]
+                boolean_check = [True if re.search(comment,changeset_comment,re.IGNORECASE) else False for comment in comment_filter] # Changed to ignore case
                 if not len(boolean_check) == 0: # Check if empty since all([]) == True
                     if all(boolean_check):
                         new[item] = changesets[item]
